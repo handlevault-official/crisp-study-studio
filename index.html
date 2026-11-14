@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>StudyStudio — Pomodoro, Flashcards &amp; Task Tracker</title>
+<meta name="description" content="Local-first study assistant, Pomodoro timer, flashcards, and task tracker. Part of the Crisp Suite.">
+<meta name="theme-color" content="#090d16" id="metaThemeColor">
+<script src="https://cdn.tailwindcss.com"></script> 
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+/* Night Shift & Relaxing Ergonomic Theme (Default) */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #090d16;
+  --card: #101726;
+  --ink: #e2e8f0;
+  --mute: #8a99b5;
+  --accent: #8b5cf6; /* Vibrant violet theme for study/focus */
+  --accent-ink: #ffffff;
+  --warn: #fbbf24;
+  --bad: #f87171;
+  --line: #23314d;
+  --field: #0b111e;
+  --btn-bg: #19243b;
+  --btn-hover: #22314f;
+  --btn-line: #3f5580;
+}
+
+/* Day Shift / Light Mode */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --ink: #0f1a2e;
+  --mute: #53627d;
+  --accent: #7c3aed;
+  --accent-ink: #ffffff;
+  --warn: #a16207;
+  --bad: #b91c1c;
+  --line: #cbd5e1;
+  --field: #f8fafd;
+  --btn-bg: #ffffff;
+  --btn-hover: #f1f5f9;
+  --btn-line: #94a3b8;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 'Plus Jakarta Sans', system-ui, sans-serif;
+  padding: 16px 12px 32px;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+button, input, textarea { font: inherit; color: inherit; }
+
+button {
+  cursor: pointer;
+  border: 1.5px solid var(--btn-line);
+  background: var(--btn-bg);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 10px 14px;
+  min-height: 44px;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: all 0.15s ease;
+}
+button:hover:not(:disabled) {
+  background: var(--btn-hover);
+  border-color: var(--accent);
+}
+button.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: transparent;
+  font-weight: 700;
+}
+button.primary:hover:not(:disabled) { filter: brightness(1.08); }
+button.danger {
+  background: rgba(248, 113, 113, 0.12);
+  color: var(--bad);
+  border-color: rgba(248, 113, 113, 0.5);
+}
+
+input, textarea {
+  width: 100%;
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--ink);
+  outline: none;
+}
+input:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+label { display: block; font-size: 13px; color: var(--mute); margin-bottom: 4px; font-weight: 600; }
+
+header.top {
+  max-width: 900px;
+  margin: 0 auto 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+.brand { font-weight: 800; color: var(--accent); font-size: 1.2rem; letter-spacing: -0.02em; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs button { padding: 8px 14px; min-height: 38px; font-size: 14px; }
+.tabs button.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 700; }
+
+main { max-width: 900px; margin: 0 auto; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.hint { color: var(--mute); font-size: 13px; margin: 4px 0; }
+
+@media(max-width: 768px) {
+  .grid2 { grid-template-columns: 1fr; }
+  header.top { flex-direction: column; align-items: stretch; }
+  .tabs { justify-content: stretch; }
+  .tabs button { flex: 1; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <span class="brand">📚 StudyStudio</span>
+    <p class="hint" style="margin:0;">Crisp Suite / HandleVault Utility</p>
+  </div>
+  <nav class="tabs" aria-label="Sections">
+    <button data-tab="pomodoro" class="on">Pomodoro</button>
+    <button data-tab="flashcards">Flashcards</button>
+    <button data-tab="tasks">Tasks</button>
+  </nav>
+  <div class="row">
+    <button id="btnThemeToggle" type="button" style="padding:8px 12px;min-height:38px;font-size:13px;">🌙 Night Shift</button>
+  </div>
+</header>
+
+<main>
+  <!-- TAB 1: POMODORO TIMER -->
+  <section id="tab-pomodoro">
+    <div class="card" style="text-align: center; padding: 30px;">
+      <h2 style="margin-top:0; font-size:18px; color:var(--accent);">Focus Session (Pomodoro)</h2>
+      <div id="timerDisplay" style="font-size: 4rem; font-weight: 800; color: var(--ink); margin: 20px 0;">25:00</div>
+      <p id="timerStatus" class="hint">Time to focus!</p>
+      <div class="row" style="justify-content: center; margin-top: 20px; gap: 10px;">
+        <button id="btnStart" class="primary">Start Focus</button>
+        <button id="btnPause">Pause</button>
+        <button id="btnReset">Reset</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 2: FLASHCARDS -->
+  <section id="tab-flashcards" hidden>
+    <div class="card">
+      <h2 style="margin-top:0; font-size:16px; color:var(--accent);">Quick Study Flashcards</h2>
+      <div id="cardBox" style="background: var(--field); border: 1px solid var(--line); border-radius: 12px; padding: 30px; text-align: center; min-height: 140px; display: flex; flex-direction: column; justify-content: center; cursor: pointer; margin-bottom: 16px;">
+        <span id="cardPrompt" style="font-size: 1.1rem; font-weight: 700;">Click to reveal answer</span>
+        <span id="cardAnswer" class="hint" style="margin-top: 10px; display: none; color: var(--accent);">Answer will appear here</span>
+      </div>
+      <div class="row" style="justify-content: space-between;">
+        <button id="btnPrevCard">Previous</button>
+        <span id="cardCounter" class="hint">Card 1 of 3</span>
+        <button id="btnNextCard" class="primary">Next Card</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: TASKS -->
+  <section id="tab-tasks" hidden>
+    <div class="card">
+      <h2 style="margin-top:0; font-size:16px; color:var(--accent);">Study Tasks &amp; Checklist</h2>
+      <div class="row" style="margin-bottom: 16px;">
+        <input id="taskInput" type="text" placeholder="Add new study topic or assignment..." style="flex: 1;">
+        <button id="btnAddTask" class="primary">Add Task</button>
+      </div>
+      <div id="taskList" style="display: flex; flex-direction: column; gap: 8px;">
+        <!-- Dynamic Tasks -->
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const THEME_KEY = 'studystudio_theme';
+  const btnTheme = document.getElementById('btnThemeToggle');
+  const metaTheme = document.getElementById('metaThemeColor');
+
+  function applyTheme(theme) {
+    const isLight = theme === 'light';
+    document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
+    if (btnTheme) btnTheme.textContent = isLight ? '☀️ Day Shift' : '🌙 Night Shift';
+    if (metaTheme) metaTheme.setAttribute('content', isLight ? '#f4f7fb' : '#090d16');
+    localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+  }
+
+  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+  btnTheme.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  });
+
+  const tabs = document.querySelectorAll('.tabs button');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('on'));
+      tab.classList.add('on');
+      const target = tab.dataset.tab;
+      document.querySelectorAll('main > section').forEach(sec => {
+        sec.hidden = sec.id !== `tab-${target}`;
+      });
+    });
+  });
+
+  // Pomodoro Logic
+  let timeLeft = 25 * 60;
+  let timerId = null;
+  let isRunning = false;
+  const timerDisplay = document.getElementById('timerDisplay');
+  const timerStatus = document.getElementById('timerStatus');
+  const btnStart = document.getElementById('btnStart');
+  const btnPause = document.getElementById('btnPause');
+  const btnReset = document.getElementById('btnReset');
+
+  function updateTimerDisplay() {
+    const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    const s = (timeLeft % 60).toString().padStart(2, '0');
+    timerDisplay.textContent = `${m}:${s}`;
+  }
+
+  btnStart.addEventListener('click', () => {
+    if (isRunning) return;
+    isRunning = true;
+    timerStatus.textContent = 'Focusing... Stay on track!';
+    timerId = setInterval(() => {
+      if (timeLeft > 0) {
+        timeLeft--;
+        updateTimerDisplay();
+      } else {
+        clearInterval(timerId);
+        isRunning = false;
+        timerStatus.textContent = 'Session complete! Take a break.';
+        alert('Pomodoro session completed!');
+      }
+    }, 1000);
+  });
+
+  btnPause.addEventListener('click', () => {
+    clearInterval(timerId);
+    isRunning = false;
+    timerStatus.textContent = 'Paused.';
+  });
+
+  btnReset.addEventListener('click', () => {
+    clearInterval(timerId);
+    isRunning = false;
+    timeLeft = 25 * 60;
+    updateTimerDisplay();
+    timerStatus.textContent = 'Ready to focus.';
+  });
+
+  // Flashcards Logic
+  const flashcards = [
+    { q: "What is the powerhouse of the cell?", a: "Mitochondria" },
+    { q: "What is the chemical symbol for Gold?", a: "Au" },
+    { q: "What principle states that energy cannot be created or destroyed?", a: "Conservation of Energy (1st Law of Thermodynamics)" }
+  ];
+  let currentCardIndex = 0;
+  let showAnswer = false;
+  const cardBox = document.getElementById('cardBox');
+  const cardPrompt = document.getElementById('cardPrompt');
+  const cardAnswer = document.getElementById('cardAnswer');
+  const cardCounter = document.getElementById('cardCounter');
+  const btnPrevCard = document.getElementById('btnPrevCard');
+  const btnNextCard = document.getElementById('btnNextCard');
+
+  function renderCard() {
+    const card = flashcards[currentCardIndex];
+    cardPrompt.textContent = card.q;
+    cardAnswer.textContent = card.a;
+    cardAnswer.style.display = showAnswer ? 'block' : 'none';
+    cardCounter.textContent = `Card ${currentCardIndex + 1} of ${flashcards.length}`;
+  }
+
+  cardBox.addEventListener('click', () => {
+    showAnswer = !showAnswer;
+    cardAnswer.style.display = showAnswer ? 'block' : 'none';
+  });
+
+  btnNextCard.addEventListener('click', () => {
+    showAnswer = false;
+    currentCardIndex = (currentCardIndex + 1) % flashcards.length;
+    renderCard();
+  });
+
+  btnPrevCard.addEventListener('click', () => {
+    showAnswer = false;
+    currentCardIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length;
+    renderCard();
+  });
+
+  renderCard();
+
+  // Task Tracker Logic
+  const taskInput = document.getElementById('taskInput');
+  const btnAddTask = document.getElementById('btnAddTask');
+  const taskList = document.getElementById('taskList');
+  let tasks = JSON.parse(localStorage.getItem('studystudio_tasks') || '["Review Math formulas", "Read Chapter 4 in Science"]');
+
+  function renderTasks() {
+    taskList.innerHTML = '';
+    tasks.forEach((task, idx) => {
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.style.justify = 'space-between';
+      div.style.background = 'var(--field)';
+      div.style.padding = '10px 14px';
+      div.style.borderRadius = '8px';
+      div.style.border = '1px solid var(--line)';
+      
+      const span = document.createElement('span');
+      span.textContent = task;
+      span.style.flex = '1';
+
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '✕';
+      delBtn.className = 'danger';
+      delBtn.style.padding = '4px 10px';
+      delBtn.style.minHeight = '32px';
+      delBtn.addEventListener('click', () => {
+        tasks.splice(idx, 1);
+        localStorage.setItem('studystudio_tasks', JSON.stringify(tasks));
+        renderTasks();
+      });
+
+      div.appendChild(span);
+      div.appendChild(delBtn);
+      taskList.appendChild(div);
+    });
+  }
+
+  btnAddTask.addEventListener('click', () => {
+    const val = taskInput.value.trim();
+    if (val) {
+      tasks.push(val);
+      localStorage.setItem('studystudio_tasks', JSON.stringify(tasks));
+      taskInput.value = '';
+      renderTasks();
+    }
+  });
+
+  renderTasks();
+})();
+</script>
+<script src="repo.js"></script>
+</body>
+</html>
